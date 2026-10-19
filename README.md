@@ -113,7 +113,14 @@ No pide nada por consola y arranca directo con el análisis:
 
 ---
 
-- `Documentación/` – Archivos relacionados a la semántica (TAS, CFG, etc).
+## 📁 Estructura del proyecto
+
+- `Documentación/` – Documentación del lenguaje, en Markdown (fácil de leer y editar):
+  - [`TAS.md`](Documentacion/TAS.md) – Tabla de Análisis Sintáctico LL(1) usada por el intérprete.
+  - [`Gramatica_LL1.md`](Documentacion/Gramatica_LL1.md) – Gramática vigente (versión de implementación).
+  - [`Gramatica_BNF.md`](Documentacion/Gramatica_BNF.md) – Gramática BNF original del proyecto.
+  - [`SemanticaAsociada.md`](Documentacion/SemanticaAsociada.md) – Especificación semántica (reglas EVAL).
+  - `PROYECTO FINAL SINTAXIS.pdf` – Informe final de la materia.
 - `Ejemplos/` – Programas de ejemplo en EsPascal.
 - `src/` – Código fuente del intérprete (en Pascal).
 
