@@ -392,9 +392,9 @@ Begin
 		'+':begin
 			Es_op_arit:=TRUE; lexema:=lexema+caracter; comp_lex:=SUMA; control:=Filepos(fuente);
 		end;
-       '~':begin
-			Es_op_arit:=TRUE; lexema:=lexema+caracter; comp_lex:=RESTA; control:=Filepos(fuente);
-		end;
+       '-':begin
+				Es_op_arit:=TRUE; lexema:=lexema+caracter; comp_lex:=RESTA; control:=Filepos(fuente);
+			end;
 		'*':begin
 			Es_op_arit:=TRUE; lexema:=lexema+caracter; comp_lex:=MULT; control:=Filepos(fuente);
 		end;
@@ -423,6 +423,15 @@ Begin
 	end;
 	end;
 end;
+//
+Function EsRestaBinaria(VAR fuente:TFUENTE; control:LONGINT; previo:TERMINALES):BOOLEAN;
+var c:CHAR;
+begin
+	Seek(fuente,control);
+	Read(fuente,c);
+	EsRestaBinaria:=(c='-') and (previo in [ID,CONSTANTEREAL,PARENTESISB]);
+end;
+
 //Proceso principal del analizador lexico, permite identificar los componentes lexicos del archivo fuente
 Procedure Sigcomp_lex(VAR fuente:TFUENTE;VAR control:LONGINT;VAR comp_lex:TERMINALES;VAR Lexema:String;VAR L:TLISTA);
 VAR	
@@ -455,6 +464,7 @@ begin
 	seek(fuente,control);
 	If eof(fuente) then
 		comp_lex:=PESOS
+	else if EsRestaBinaria(fuente,control,comp_lex) and Es_op_arit(fuente,control,Lexema,comp_lex) then
 	else If Es_identificador(fuente,control,Lexema) then
 		Insertartabla (L,lexema,comp_lex)
 	else If Es_constante_real(fuente,control,Lexema)then
@@ -469,7 +479,7 @@ begin
 		else If Es_op_asig(fuente,control,Lexema,comp_lex) then
 			else If Es_op_arit(fuente,control,Lexema,comp_lex) then
 				else  comp_lex:=ERRORLEXICO;
-WRITELN('Componente lexico: ',NOMBREVARIABLEOTERMINAL[COMP_LEX]);
+//WRITELN('Componente lexico: ',NOMBREVARIABLEOTERMINAL[COMP_LEX]);
 end;
 
 end.

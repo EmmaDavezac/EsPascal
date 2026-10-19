@@ -1,17 +1,22 @@
-Funcion COCIENTE (A,B)
-Q:=0.
-R:=0.
-AUX:=A.
-MIENTRAS AUX >= B :
-Q:=Q+1.
-AUX:=AUX + (B  * -1).
-fin.
-COCIENTE:=AUX.
-fin.
 funcion principal(A,B)
 mostrar('ingrese el numerador').
 leer(A).
 mostrar('ingrese el denominador').
 leer(B).
+COC:=COCIENTE(A,B).
+RES:=A - (B * COC).
+mostrar('el cociente es: ').
+mostrar(COC).
+mostrar('el resto es: ').
+mostrar(RES).
+fin.
 
-fin.  
+Funcion COCIENTE (A,B)
+Q:=0.
+AUX:=A.
+MIENTRAS AUX >= B :
+Q:=Q+1.
+AUX:=AUX - B.
+fin.
+COCIENTE:=Q.
+fin.
