@@ -1,7 +1,7 @@
 unit UANALIZADORSINTACTICO;
 //RESUMEN:Esta unidad contiene los procedimientos relacionados con el analizador sintactico y el interprete.
 interface
-USES UTIPOS,UTAS,UAUTOMATAS,UTS,UEVALUADORSEMANTICO,CRT,UPILA,UARBOL;
+USES UTIPOS,UTAS,UAUTOMATAS,UTS,UEVALUADORSEMANTICO,CRT,UPILA,UARBOL,SysUtils;
 
 //Resumen: Procedimiento principal del interprete.
 PROCEDURE PROCESOINTERPRETE;
@@ -10,7 +10,7 @@ implementation
 {RESUMEN:Esta funcion se basa en el algoritmo de reconocimiento visto en clase, es un interprete predictivo no recursivo.
 Parametros: la ruta del archivo con el codigo fuente, la lista de funciones, lista de componenetes lexicos y la raiz del arbol de analisis sintactico.
 RESULTADO: Error1, Error2 o EXITO si pasa el analisis sintactico. }
-Function AnalizadorSintactico(ruta:string;VAR LF:LFs; VAR L:TLISTA; VAR RAIZ:TPUNTEROARBOL):String;
+Function AnalizadorSintactico(ruta:AnsiString;VAR LF:LFs; VAR L:TLISTA; VAR RAIZ:TPUNTEROARBOL):String;
 //RESUMEN: este procedimiento carga una funcion a la lista de funciones
 PROCEDURE CARGARFUNCION(VAR LF:LFs;LEXEMA:STRING;APUNTADOR:TPUNTEROARBOL;VAR I:BYTE);
 BEGIN
@@ -69,10 +69,10 @@ BEGIN
 	palabra:='';
 //Inicializamos la POSICION EN EL ARCHIVO
 	CONTROL:=0;
-//Inicializamos tamaño de la lista de funciones
+//Inicializamos tamaï¿½o de la lista de funciones
 	LF.TAM:=0;
 //Leemos el primer componenente lexico desde el archivo
-Writeln('LISTA DE COMPONENTES LEXICOS');
+//Writeln('LISTA DE COMPONENTES LEXICOS');
 	Sigcomp_lex(Fuente,Control,ATERMINAL,Lexema,L);
 //Repetir hasta exito o error
 	while (estado<>'ERROR1')AND(estado<>'ERROR2') and (estado<>'EXITO') AND (ATERMINAL<>ERRORLEXICO) DO
@@ -159,9 +159,36 @@ analizadorsintactico:= estado;
 
 END;
 
+{RESUMEN: Normaliza la ruta indicada por el usuario.
+Quita espacios sobrantes, prefijos URI (file://), comillas dobles (CMD) o simples (PowerShell)
+y espacios escapados con \ (terminales Linux/macOS), para poder usar rutas absolutas
+arrastradas a la consola o escritas a mano.}
+Function LimpiarRuta(Ruta:AnsiString):AnsiString;
+Var
+    EsURI:Boolean;
+BEGIN
+    Ruta:=Trim(Ruta);
+    //Algunos gestores de archivos arrastran la ruta como URI (file:///...)
+    EsURI:=Copy(Ruta,1,7)='file://';
+    IF EsURI THEN
+        BEGIN
+        Delete(Ruta,1,7);
+        //En las URIs los espacios vienen codificados como %20
+        Ruta:=StringReplace(Ruta,'%20',' ',[rfReplaceAll]);
+        END;
+    //Quitamos las comillas que agrega la consola al arrastrar (CMD: ", PowerShell: ')
+    IF (Length(Ruta)>=2) AND (Ruta[1]=Ruta[Length(Ruta)]) AND (Ruta[1] IN ['"','''']) THEN
+        Ruta:=Copy(Ruta,2,Length(Ruta)-2);
+    Ruta:=Trim(Ruta);
+    //Los terminales Linux/macOS escapan los espacios con \ al arrastrar (no lo hacemos en rutas de Windows C:\...)
+    IF (Length(Ruta)<2) OR (Ruta[2]<>':') THEN
+        Ruta:=StringReplace(Ruta,'\ ',' ',[rfReplaceAll]);
+    LimpiarRuta:=Trim(Ruta);
+END;
+
 //Proceso principal de interprete
 PROCEDURE PROCESOINTERPRETE;
-var ruta:string;
+var ruta:AnsiString;
 estado:string[6];
 //Lista de Funciones
 LF:LFs;
@@ -169,11 +196,45 @@ LF:LFs;
 L:TLISTA;
 //Raiz del arbol de analisis sintactico
 RAIZ:TPUNTEROARBOL;
+//Variable entera utilizada en la funcion
+I:INTEGER;
 
 Begin
  Writeln('BIENVENIDO A NUESTRO INTERPRETE');
- write('Ingrese la ruta del archivo fuente o arrastrelo hacia la consola: ');
- readln(ruta);
+ //Si el usuario paso la ruta del archivo fuente como argumento de linea de comandos, se usa directamente
+ IF ParamCount>0 THEN
+    BEGIN
+    //Unimos los argumentos para soportar rutas con espacios aunque lleguen sin comillas
+    ruta:='';
+    FOR I:=1 TO ParamCount DO
+        ruta:=ruta+ParamStr(I)+' ';
+    ruta:=LimpiarRuta(ruta);
+    Writeln('Archivo fuente: ',ruta);
+    END
+ ELSE
+    BEGIN
+    write('Ingrese la ruta del archivo fuente o arrastrelo hacia la consola: ');
+    readln(ruta);
+    ruta:=LimpiarRuta(ruta);
+    END;
+ //Verificamos que se haya indicado una ruta
+ IF ruta='' THEN
+    BEGIN
+    Writeln('No se indico ninguna ruta de archivo fuente.');
+    Writeln('Presione una tecla para salir...');
+    readkey;
+    Exit;
+    END;
+ //Verificamos que el archivo exista antes de analizarlo
+ IF NOT FileExists(ruta) THEN
+    BEGIN
+    Writeln('No se encontro el archivo fuente: [',ruta,']');
+    Writeln('Directorio actual: [',GetCurrentDir,']');
+    Writeln('Verifique que la ruta sea correcta y que el archivo exista.');
+    Writeln('Presione una tecla para salir...');
+    readkey;
+    Exit;
+    END;
  estado:=AnalizadorSintactico(ruta,LF,L,RAIZ);
 //Si el estado de la comprobacion sintactica es exito, se traduce el codigo para su ejecucion
 if estado='EXITO' THEN

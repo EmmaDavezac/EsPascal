@@ -1,0 +1,26 @@
+# Artefactos de compilación de Free Pascal / Pascal
+*.o
+*.ppu
+*.dcu
+*.obj
+*.a
+*.or
+*.res
+*.compiled
+*.rst
+*.exe
+
+# Ejecutables compilados del intérprete (sin extensión)
+INTERPRETE_ESPASCAL
+src/INTERPRETE_ESPASCAL
+
+# Backups y archivos temporales
+*~
+*.bak
+*.tmp
+*.orig
+*.lps
+
+# Directorios de compilación (FPC / Lazarus)
+backup/
+lib/
