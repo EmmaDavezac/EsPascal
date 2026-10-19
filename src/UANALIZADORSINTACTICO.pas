@@ -1,7 +1,7 @@
 unit UANALIZADORSINTACTICO;
 //RESUMEN:Esta unidad contiene los procedimientos relacionados con el analizador sintactico y el interprete.
 interface
-USES UTIPOS,UTAS,UAUTOMATAS,UTS,UEVALUADORSEMANTICO,CRT,UPILA,UARBOL,SysUtils;
+USES UTIPOS,UTAS,UAUTOMATAS,UTS,UEVALUADORSEMANTICO,CRT,UPILA,UARBOL,SysUtils,UERRORES;
 
 //Resumen: Procedimiento principal del interprete.
 PROCEDURE PROCESOINTERPRETE;
@@ -98,7 +98,7 @@ BEGIN
 				ELSE
     BEGIN
 				ESTADO:='ERROR1';
-                writeln('Error sintactico: se esperaba, ',NOMBREVARIABLEOTERMINAL[PELEMENTO^.VOT],', se encontro ', NOMBREVARIABLEOTERMINAL[ATERMINAL])
+                ErrorSintactico(Fuente,Control-Length(LEXEMA),PELEMENTO^.VOT,ATERMINAL,LEXEMA);
                                                        end
 			END
 
@@ -109,8 +109,7 @@ BEGIN
 				IF TAS[ELEMENTO,ATERMINAL]='' then begin
 //No esta definida la entrada [ELEMENTO,ATERMINAL] en la TAS
                                                        ESTADO:='ERROR2';
-                                                       writeln('TASI[',NOMBREVARIABLEOTERMINAL[ELEMENTO],' , ', NOMBREVARIABLEOTERMINAL[ATERMINAL],' ] = empty');
-                                                       writeln('Error sintactico: se esperaba ',NOMBREVARIABLEOTERMINAL[PELEMENTO^.VOT],', se encontro ',NOMBREVARIABLEOTERMINAL[ATERMINAL])
+                                                       ErrorInesperado(Fuente,Control-Length(LEXEMA),ATERMINAL,LEXEMA,NOMBREVARIABLEOTERMINAL[ELEMENTO]);
                                                        end
 				ELSE
 				BEGIN
@@ -152,6 +151,12 @@ BEGIN
                     ESTADO:='EXITO';
             END;
         END;
+//Si el analizador lexico detecto un simbolo invalido, se reporta con su posicion
+ If (ATERMINAL=ERRORLEXICO) And (ESTADO='') Then
+ Begin
+     ESTADO:='ERRLEX';
+     ReportarErrorLexico(Fuente,Control);
+ End;
 //Se cierra el archivo funte
 close(fuente);
 //resultado final de la funcion
@@ -244,8 +249,8 @@ if estado='EXITO' THEN
     EVALPROGRAMA(RAIZ,L,LF)
    END
 ELSE
-//En caso de error sintactico se muestra este en pantalla
-Writeln('Error:',Estado);
+//Los detalles del error ya se mostraron durante el analisis
+Writeln('El programa no se ejecuto debido a los errores mostrados arriba.');
 Writeln('Presione una tecla para salir...');
 readkey;
 End;

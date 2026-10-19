@@ -436,6 +436,7 @@ end;
 Procedure Sigcomp_lex(VAR fuente:TFUENTE;VAR control:LONGINT;VAR comp_lex:TERMINALES;VAR Lexema:String;VAR L:TLISTA);
 VAR	
 	caracter:CHAR;
+pos_token:LongInt;
 begin
 	lexema:='';
 	seek(fuente,control);
@@ -461,6 +462,7 @@ begin
 				Seek(fuente,FilePos(fuente)-1);
 	end;
 	control:=FilePos(fuente);
+pos_token:=control;
 	seek(fuente,control);
 	If eof(fuente) then
 		comp_lex:=PESOS
@@ -478,7 +480,7 @@ begin
 	else IF Es_op_rel(fuente,control,Lexema,comp_lex) then
 		else If Es_op_asig(fuente,control,Lexema,comp_lex) then
 			else If Es_op_arit(fuente,control,Lexema,comp_lex) then
-				else  comp_lex:=ERRORLEXICO;
+else begin comp_lex:=ERRORLEXICO; control:=pos_token; end;
 //WRITELN('Componente lexico: ',NOMBREVARIABLEOTERMINAL[COMP_LEX]);
 end;
 
